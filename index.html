@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+<html>
+    <head>
+
+    </head>
+
+    <body>
+        <h1>Sorting algorithm visualizer</h1>
+
+        
+        <input type="text" id="field1" title="Array to be sorted (e.g. 4,3,2,1)">
+        <button class="button" title="Uses Bubble-Sort to sort the array" onclick="bubble()">Bubble-Sort</button>
+        <button class="button" title="Uses Insertion-Sort to sort the array" onclick="insertion()">Insertion-Sort</button>
+        <button class="button" title="Returns a randomized array with as many numbers as you wish" onclick="randomArray()">Random Array</button>
+        <input type="number" id="randField" value="50" title="Amount of numbers in the randomized array" style="width:100px">
+
+        <input style="margin-left:60px" title="Defines the visualizers speed" type="range" min="1" max="1000" value="1000" class="slider" id="myRange" name="RangeSlide">
+        <label for="RangeSlide">Speed</label>
+
+        <input style="margin-left: 60px;" type="checkbox" title="Performs the respective algorithm without visualization and measures the time it took" id="instant" name="instant">
+        <label for="instant">Measure Time</label>
+
+        <input style="margin-left: 60px;" title="Performs the respective algorithm less visual but faster (great for big arrays)" type="checkbox" id="faster" name="faster">
+        <label for="faster">Faster (without colors)</label>
+
+        <!-- Algorithms -->
+        <script>
+            function bubble() {
+                if(document.getElementById("instant").checked) {
+                    bubbleInstant();
+                    return;
+                }
+                if(document.getElementById("faster").checked) {
+                    bubbleFaster();
+                    return;
+                }
+
+                const sleep = (time) => {
+                    return new Promise((resolve) => setTimeout(resolve, time))
+                }
+                const arr = document.getElementById("field1").value.split(',');
+                    var speed = 1000 - document.getElementById("myRange").value;
+                    condition = false;
+                    var sorted = false;
+                    const doSomething = async () => {
+                        
+                        for(let i = 1; i <= arr.length; i++) {
+                            if(!sorted) {
+                            sorted = true;
+                                for(let j = 0; j < arr.length - 1; j++) {
+                                    if(parseInt(arr[j]) > parseInt(arr[j+1])) {
+                                        await sleep(speed);
+                                        showRect(arr, j, j+1);
+                                        var temp = arr[j];
+                                        arr[j] = arr[j+1],
+                                        arr[j+1] = temp;
+                                        sorted = false;
+                                    }
+                                    await sleep(speed);
+                                    showRect(arr, j, j+1);
+                                }
+                            }
+                        }
+                        await sleep(speed);
+                        drawGreen(arr);
+                    }   
+                    doSomething();
+            }
+
+            function insertion() {
+                if(document.getElementById("instant").checked) {
+                    insertionInstant();
+                    return;
+                }
+                if(document.getElementById("faster").checked) {
+                    insertionFaster();
+                    return;
+                }
+
+                const sleep = (time) => {
+                    return new Promise((resolve) => setTimeout(resolve, time))
+                }
+
+                let arr = document.getElementById("field1").value.split(',');
+                let speed = 1000 - document.getElementById("myRange").value;
+                let key;
+                let i;
+                const doSomething = async () => {
+                    for(let j = 1; j < arr.length; j++) {
+                        key = arr[j];
+                        i = j - 1;
+
+                        // visualization
+                        for(let k = 0; k < j; k++) {
+                            if(parseInt(arr[k]) > parseInt(key)) {
+                                await sleep(speed);
+                                showRectInsertion(arr, j, k);
+                                break;
+                            }
+                            await sleep(speed);
+                            showRectInsertion(arr, j, k);
+                        }
+
+                        // algorithm
+                        while(i >= 0 && parseInt(arr[i]) > parseInt(key)) {
+                            arr[i+1] = arr[i];
+                            i = i - 1;
+                        }
+                        arr[i+1] = key;
+                    }
+                    await sleep(speed);
+                    drawGreen(arr);
+                }
+                doSomething();    
+            }
+
+            function randomArray() {
+                let size = document.getElementById("randField").value;
+                const inputArray = [];
+                for(let i = 0; i < size; i++) {
+                    inputArray[i] = i + 1;
+                }
+
+                inputArray.sort(()=> Math.random() - 0.5);
+                
+                let arrString = JSON.stringify(inputArray);
+
+                document.getElementById("field1").value = arrString.substring(1,arrString.length - 1);
+
+                showRect(document.getElementById("field1").value.split(','), -1, -1);
+
+            }
+        </script>
+
+        <br>
+        <canvas id="myCanvas" width="800" height="550" style="border:1px solid #d3d3d3;">
+        Your browser does not support the HTML5 canvas tag.</canvas>
+
+        <!-- Draw bars -->
+        <script>
+            function showRect(arr, pos1, pos2) {
+                var c = document.getElementById("myCanvas");
+                var context = c.getContext("2d");
+                c.width = c.width;
+                size = arr.length;
+
+                let rectWidth = 760/(2 * size - 1);
+
+                // evaluate max number in array
+                let max = 1;
+                for(let i = 0; i < arr.length; i++) {
+                    if(parseInt(arr[i]) > parseInt(max)) {
+                        max = arr[i];
+                    }
+                }
+                let maxHeight = 500/max;
+
+
+                for(let i = 0; i < arr.length; i++) {
+                    if(parseInt(i) == parseInt(pos1) || parseInt(i) == parseInt(pos2)) {
+                        context.fillStyle = 'red';
+                        context.fillRect(20 + (2 * rectWidth)*i, 20, rectWidth, maxHeight*(arr[i]));
+                        context.stroke();
+                        context.fillStyle = 'black';
+                    }
+                    else {
+                        context.fillRect(20 + (2 * rectWidth)*i, 20, rectWidth, maxHeight*(arr[i]));
+                        context.stroke();
+                    }
+                }
+            }
+
+            function showRectInsertion(arr, pos1, pos2) {
+                var c = document.getElementById("myCanvas");
+                var context = c.getContext("2d");
+                c.width = c.width;
+                size = arr.length;
+
+                let rectWidth = 760/(2 * size - 1);
+
+                // evaluate max number in array
+                let max = 1;
+                for(let i = 0; i < arr.length; i++) {
+                    if(parseInt(arr[i]) > parseInt(max)) {
+                        max = arr[i];
+                    }
+                }
+                let maxHeight = 500/max;
+
+                for(let i = 0; i < arr.length; i++) {
+                    
+                    if(parseInt(i) == parseInt(pos1)) {
+                        context.fillStyle = 'red';
+                        context.fillRect(20 + (2 * rectWidth)*i, 20, rectWidth, maxHeight*(arr[i]));
+                        context.stroke();
+                        context.fillStyle = 'black';
+                    }
+                    else if(parseInt(i) == parseInt(pos2)) {
+                        context.fillStyle = 'blue';
+                        context.fillRect(20 + (2 * rectWidth)*i, 20, rectWidth, maxHeight*(arr[i]));
+                        context.stroke();
+                        context.fillStyle = 'black';
+                    }
+                    else {
+                        context.fillRect(20 + (2 * rectWidth)*i, 20, rectWidth, maxHeight*(arr[i]));
+                        context.stroke();
+                    }
+                }
+            }
+
+            function drawGreen(arr) {
+                var c = document.getElementById("myCanvas");
+                var context = c.getContext("2d");
+                c.width = c.width;
+                size = arr.length;
+
+                let rectWidth = 760/(2 * size - 1);
+
+                // evaluate max number in array
+                let max = 1;
+                for(let i = 0; i < arr.length; i++) {
+                    if(parseInt(arr[i]) > parseInt(max)) {
+                        max = arr[i];
+                    }
+                }
+                let maxHeight = 500/max;
+
+                for(let i = 0; i < arr.length; i++) {
+                    context.fillStyle = 'green';
+                    context.fillRect(20 + (2 * rectWidth)*i, 20, rectWidth, maxHeight*(arr[i]));
+                    context.stroke();
+                    context.fillStyle = 'black';
+                }
+            }
+        </script>
+
+        <!-- Instant algorithms + measure time -->
+        <script>
+            function bubbleInstant() {
+                const start = performance.now();
+                const arr = document.getElementById("field1").value.split(',');
+                condition = false;
+                var sorted = false;
+                for(let i = 1; i <= arr.length; i++) {
+                    if(!sorted) {
+                        sorted = true;
+                        for(let j = 0; j < arr.length - 1; j++) {
+                            if(parseInt(arr[j]) > parseInt(arr[j+1])) {
+                                var temp = arr[j];
+                                arr[j] = arr[j+1],
+                                arr[j+1] = temp;
+                                sorted = false;
+                            }
+                        }
+                    }
+                    document.getElementById("demo").innerHTML = performance.now() - start + "ms";
+                drawGreen(arr);
+                }
+            }
+            
+            function insertionInstant() {
+                const start = performance.now();
+                let arr = document.getElementById("field1").value.split(',');
+                let key;
+                let i;
+                    for(let j = 1; j < arr.length; j++) {
+                        key = arr[j];
+                        i = j - 1;
+                        
+                        while(i >= 0 && parseInt(arr[i]) > parseInt(key)) {
+                            arr[i+1] = arr[i];
+                            i = i - 1;
+                        }
+                        arr[i+1] = key;
+                    }
+                    document.getElementById("demo").innerHTML = performance.now() - start + "ms";
+
+                    drawGreen(arr);
+                }
+        </script>
+
+        <!-- Faster without colors -->
+        <script>
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+
+            function bubbleFaster() {
+                const sleep = (time) => {
+                    return new Promise((resolve) => setTimeout(resolve, time))
+                }
+
+                const arr = document.getElementById("field1").value.split(',');
+                condition = false;
+                var sorted = false;
+                let speed = 100 - document.getElementById("myRange").value/10;
+                const doSomething = async () => {
+                    for(let i = 1; i <= arr.length; i++) {
+                        if(!sorted) {
+                            sorted = true;
+                            for(let j = 0; j < arr.length - 1; j++) {
+                                if(parseInt(arr[j]) > parseInt(arr[j+1])) {
+                                    var temp = arr[j];
+                                    arr[j] = arr[j+1],
+                                    arr[j+1] = temp;
+                                    sorted = false;
+                                }
+                            }
+                            await sleep(speed);
+                            showRectInsertion(arr, -1, -1);
+                            
+                        }
+                        else {
+                            drawGreen(arr);
+                            return;
+                        }
+                    }
+                }
+                doSomething();
+                
+            }
+            
+            function insertionFaster() {
+                const sleep = (time) => {
+                    return new Promise((resolve) => setTimeout(resolve, time))
+                }
+
+                let arr = document.getElementById("field1").value.split(',');
+                let key;
+                let i;
+                let speed = 100 - document.getElementById("myRange").value/10;
+                const doSomething = async () => {
+                    for(let j = 1; j < arr.length; j++) {
+                        key = arr[j];
+                        i = j - 1;
+                        
+                        while(i >= 0 && parseInt(arr[i]) > parseInt(key)) {
+                            arr[i+1] = arr[i];
+                            i = i - 1;
+                        }
+                        arr[i+1] = key;
+                        await sleep(speed);
+                        showRectInsertion(arr, -1, -1);
+                    }
+                    drawGreen(arr);
+                }
+                doSomething();
+            }
+        </script>
+        
+        
+        <p id="demo"></p>
+
+    </body>
+
+</html>
